@@ -16,6 +16,7 @@ class TestWork
         
         // include all functions
         include_once( TWPATH . '/includes/openweathermapapi.functions.php' );
+        include_once( TWPATH . '/includes/shortcodewidget.function.php' );
 
         include_once( TWPATH . '/includes/admin.functions.php' );
     }
