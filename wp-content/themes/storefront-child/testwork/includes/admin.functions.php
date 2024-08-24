@@ -4,29 +4,51 @@ if(!defined('ABSPATH')) die('Access Denied');
 
 class TWAdmin
 {
+    // declare custom post type variables
     private $posttype = [
         'singular' => 'City',
         'plural' => 'Cities',
         'name' => 'city'
     ];
 
+    // declare taxonomy variables
     private $tax = [
         'singular' => 'Country',
         'plural' => 'Countries',
         'name' => 'cu_countries'
     ];
+
+    // declare custom field variables
+    private $customfields = [
+        [
+            'name' => 'cu_latitude',
+            'id' => '<?php echo $cu->id ?>',
+            'title' => 'Latitude',
+        ],
+        [
+            'name' => 'cu_longitude',
+            'id' => 'cu-longitude',
+            'title' => 'Longitude',
+        ]
+    ];
     
 
     public function __construct()
     {
-        add_action('init', [$this, 'create_customposttype'], 0);
-        add_action('init', [$this, 'create_customtaxonomy'], 0);
+        add_action('init', [$this, 'create_customposttype'], 0); // function for creating custom post type called
+        add_action('init', [$this, 'create_customtaxonomy'], 0); // function for creating custom taxonomy
+        add_action('init', [$this, 'init_metabox'], 0); // function for adding metaboxes to the custom post type edit screen
+
+        // save customfields function
+        add_action( 'save_post', [$this, 'save_customfields'] );
+        add_action( 'new_to_publish', [$this, 'save_customfields'] );
+
+
     }
     
     /**
      * Create Custom Post Type
      * 
-     * @return [type]
      */
     public function create_customposttype(){
         $labels = array(
@@ -66,7 +88,6 @@ class TWAdmin
     /**
      * Create custom Taxonomy
      * 
-     * @return [type]
      */
     public function create_customtaxonomy(){
         $singular = $this->tax['singular'];
@@ -94,7 +115,87 @@ class TWAdmin
               'rewrite' => array( 'slug' => $this->tax['name'] ),
           ));
 
-    }      
+    }
+
+    public function init_metabox() {
+        add_action('add_meta_boxes', [$this, 'add_metabox']);
+    }
+
+    /**
+     * Add Metabox on the City Custom post type edit screen
+     * 
+     */
+    public function add_metabox(){
+        add_meta_box(
+            'latitude_longitude',
+            'Latitude and Longitude', 
+            [$this, 'metabox_display'],
+            $this->posttype['name'],
+            'normal',
+            'high'
+        );
+    }
+
+    /**
+     * Callback function for the add_meta_box function
+     */
+    public function metabox_display(){
+        global $wpdb, $post;
+        $postid = $post->ID;
+
+        ob_start();
+        wp_nonce_field($this->posttype['name'] . '_customfield', 'cu_wpnonce');
+        ?>
+        <div class="cu-form-group">
+            <?php foreach( $this->customfields as $cu ): ?>
+            <div class="cu-formrow">
+                <div class="cu-formcol"><label for="<?php echo $cu['id'] ?>"><?php echo $cu['title'] ?></label></div>
+                <div class="cu-formcol"><input type="text" name="<?php echo $cu['name'] ?>" id="<?php echo $cu['id'] ?>" value="" data-postid="<?php echo $postid ?>"></div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+
+        <?php 
+        echo ob_get_clean();
+        
+    }
+
+    /**
+     * Save the Custom Fields
+     * 
+     * @param int $post_id
+     * 
+     */
+    public function save_customfields( $post_id ){
+        global $wpdb;
+
+        // verify nonce
+        if(!isset($_POST[$this->posttype['name'] . '_customfield']) || !wp_verify_nonce('cu_wpnonce', $this->posttype['name'] . '_customfield') ) return 'invalid nonce';
+
+        // check autosave
+        if( wp_is_post_autosave($post_id) ) return 'autosave';
+        
+
+        // check for permissions
+        if( $_POST['post_type'] == $this->posttype['name'] ) {
+            if( !current_user_can('edit_page', $post_id) ) return 'cannot edit page';
+        } elseif ( !current_user_can('edit_post', $post_id) ) {
+            return 'cannot edit post';
+        }
+
+        // Loop through each customfields
+        foreach( $this->customfields as $cu ) {
+            // sanitized values first
+            $sanitized_value = sanitize_text_field($_POST[$cu['name']]);
+
+            // add or update customfield to database
+            if( ! add_post_meta( $post_id, $cu['name'], $sanitized_value, true ) ) {
+                update_post_meta( $post_id, $cu['name'], $sanitized_value );
+            }
+
+        }
+
+    }
 
     
 
