@@ -43,7 +43,7 @@ class TWAdmin
         add_action( 'save_post', [$this, 'save_customfields'] );
         add_action( 'new_to_publish', [$this, 'save_customfields'] );
 
-
+        add_action( 'wp_footer', [$this, 'testfunction']);
     }
     
     /**
@@ -61,7 +61,7 @@ class TWAdmin
             'new_item'           => __( 'New ' . $this->posttype['singular'], TWTXTDOMAIN ),
             'edit_item'          => __( 'Edit ' . $this->posttype['singular'], TWTXTDOMAIN ),
             'view_item'          => __( 'View ' . $this->posttype['singular'], TWTXTDOMAIN ),
-            'all_items'          => __( 'All ' . $this->posttype['singular'], TWTXTDOMAIN ),
+            'all_items'          => __( 'All ' . $this->posttype['plural'], TWTXTDOMAIN ),
             'search_items'       => __( 'Search ' . $this->posttype['singular'], TWTXTDOMAIN ),
             'not_found'          => __( 'No '. $this->posttype['singular'] .' found.', TWTXTDOMAIN ),
             'not_found_in_trash' => __( 'No '. $this->posttype['singular'] .' found in Trash.', TWTXTDOMAIN )
@@ -205,6 +205,20 @@ class TWAdmin
             
         }
         
+    }
+
+    public function testfunction(){
+        $city = get_post(19);
+
+        $taxonomy = get_the_terms($city->ID, $this->tax['name']);
+
+        $city_info = [
+            'city_name' => $city->post_title,
+            'country' => $taxonomy[0]->name,
+        ];
+        ?>
+        <pre><?php var_dump($city_info) ?></pre>
+        <?php 
     }
 
 }
