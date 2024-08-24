@@ -22,7 +22,7 @@ class TWAdmin
     private $customfields = [
         [
             'name' => 'cu_latitude',
-            'id' => '<?php echo $cu->id ?>',
+            'id' => 'cu-latitude',
             'title' => 'Latitude',
         ],
         [
@@ -147,10 +147,12 @@ class TWAdmin
         wp_nonce_field($this->posttype['name'] . '_customfield', 'cu_wpnonce');
         ?>
         <div class="cu-form-group">
-            <?php foreach( $this->customfields as $cu ): ?>
+            <?php foreach( $this->customfields as $cu ): 
+                $value = !empty(get_post_meta($postid, $cu['name'], true)) ? get_post_meta($postid, $cu['name'], true) : '';
+                ?>
             <div class="cu-formrow">
                 <div class="cu-formcol"><label for="<?php echo $cu['id'] ?>"><?php echo $cu['title'] ?></label></div>
-                <div class="cu-formcol"><input type="text" name="<?php echo $cu['name'] ?>" id="<?php echo $cu['id'] ?>" value="" data-postid="<?php echo $postid ?>"></div>
+                <div class="cu-formcol"><input type="text" name="<?php echo $cu['name'] ?>" id="<?php echo $cu['id'] ?>" value="<?php echo $value ?>" data-postid="<?php echo $postid ?>" ></div>
             </div>
             <?php endforeach; ?>
         </div>
@@ -170,10 +172,12 @@ class TWAdmin
         global $wpdb;
 
         // verify nonce
-        if(!isset($_POST[$this->posttype['name'] . '_customfield']) || !wp_verify_nonce('cu_wpnonce', $this->posttype['name'] . '_customfield') ) return 'invalid nonce';
+        if(!isset($_POST['cu_wpnonce']) || !wp_verify_nonce($_POST['cu_wpnonce'], $this->posttype['name'] . '_customfield') ) {
+            return 'invalid nonce';
+        }
 
         // check autosave
-        if( wp_is_post_autosave($post_id) ) return 'autosave';
+        if( wp_is_post_autosave($post_id) ) return;
         
 
         // check for permissions
@@ -183,18 +187,24 @@ class TWAdmin
             return 'cannot edit post';
         }
 
+
+        
         // Loop through each customfields
         foreach( $this->customfields as $cu ) {
             // sanitized values first
-            $sanitized_value = sanitize_text_field($_POST[$cu['name']]);
-
+            // $sanitized_value = sanitize_text_field($_POST[$cu['name']]);
+            $sanitized_value = $_POST[ $cu['name'] ];
+            $a[] = $sanitized_value;
+            
             // add or update customfield to database
-            if( ! add_post_meta( $post_id, $cu['name'], $sanitized_value, true ) ) {
+            if( ! metadata_exists( 'post', $post_id, $cu['name'] ) ) {
+                add_post_meta( $post_id, $cu['name'], $sanitized_value);
+            } else {
                 update_post_meta( $post_id, $cu['name'], $sanitized_value );
             }
-
+            
         }
-
+        
     }
 
     
