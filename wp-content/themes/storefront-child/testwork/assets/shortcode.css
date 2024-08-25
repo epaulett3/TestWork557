@@ -1,3 +1,8 @@
+:root {
+    --color1: #2196F3;
+    --color2: #ffe500;
+}
+
 .tw-citytablelist {
     position: relative;
 }
@@ -34,4 +39,26 @@
     background: none;
     z-index: 9;
     outline: none;
+}
+
+.tw-section.tw-search {
+    width: 100%;
+    padding: 20px;
+    background: var(--color1);
+    margin-bottom: 20px;
+}
+
+.tw-section.tw-search form {
+    margin: 0;
+    padding: 0;
+}
+
+.cu-formrow {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+button#tw-citysearch-submit {
+    background: var(--color2);
 }
