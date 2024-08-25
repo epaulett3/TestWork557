@@ -131,6 +131,8 @@ class TW_Shortcode
             $sql .= " AND a.post_title like '%{$s}%'";
         }
 
+        $sql .= " LIMIT 30";
+
         $query = $wpdb->prepare($sql);
         return $wpdb->get_results($query, $output);
     }

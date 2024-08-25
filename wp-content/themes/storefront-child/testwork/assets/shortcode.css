@@ -39,6 +39,7 @@
     background: none;
     z-index: 9;
     outline: none;
+    height: 100%;
 }
 
 .tw-section.tw-search {
