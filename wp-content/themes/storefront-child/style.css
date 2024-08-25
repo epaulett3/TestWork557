@@ -12,3 +12,17 @@ Template: storefront
 
 
 */
+
+
+.site-header-wrapper {
+    width: 100%;
+    max-width: 1024px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.cu-branding .site-branding {
+    margin-bottom: 0;
+}
