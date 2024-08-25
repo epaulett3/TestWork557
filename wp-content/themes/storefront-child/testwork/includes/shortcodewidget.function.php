@@ -45,7 +45,7 @@ class TW_Shortcode
                             <th>Temperature</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tw-citylist">
                         <?php foreach($cities as $city): 
                             $country = get_the_terms($city->ID, TW_TAX);
                             ?>
