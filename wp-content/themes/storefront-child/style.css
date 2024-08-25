@@ -12,8 +12,7 @@ Template: storefront
 
 
 */
-
-
+/* CSS STYLES FOR HEADER SECTION - START */
 .site-header-wrapper {
     width: 100%;
     max-width: 1024px;
@@ -26,3 +25,38 @@ Template: storefront
 .cu-branding .site-branding {
     margin-bottom: 0;
 }
+
+header#masthead {
+    background: #f8f8f8;
+}
+
+#menu-main-menu .menu-item {
+    font-weight: bold;
+    outline: none;
+}
+
+#menu-main-menu .menu-item.current_page_item a, #menu-main-menu .menu-item.current_page_item {
+    color: #2196f3;
+}
+
+#menu-main-menu .menu-item.current_page_item {
+    background: #fff;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border: 1px solid #f0f0f0;
+    position: relative;
+}
+
+#menu-main-menu .menu-item.current_page_item:after {
+    content: "";
+    position: absolute;
+    z-index: 9;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: #fff;
+}
+
+
+/* CSS STYLES FOR HEADER SECTION - END */

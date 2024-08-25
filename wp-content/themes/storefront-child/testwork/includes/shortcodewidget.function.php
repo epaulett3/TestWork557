@@ -4,6 +4,12 @@ if(!defined('ABSPATH')) die('Access Denied');
 
 /**
  * Shortcode to list the Cities in a table with search
+ * Whats Included:
+ * - Register Shortcode
+ * - Callback function for the Shortcode
+ * - AJAX Callback function for the Search Form using AJAX
+ * - Get Weather data
+ * - Save Weather data to DB
  */
 class TW_Shortcode
 {
@@ -15,9 +21,10 @@ class TW_Shortcode
 
     public function __construct()
     {
+        // Add function to the init action hook
         add_action('init', [$this, 'init']);
 
-        // ajax function
+        // ajax callback function
         add_action('wp_ajax_tw_search', [$this, 'tw_search_callback']);
         add_action('wp_ajax_nopriv_tw_search', [$this, 'tw_search_callback']);
     }
@@ -28,10 +35,13 @@ class TW_Shortcode
      * @return [type]
      */
     public function init(){
+
+        // Register Scripts and styles to be called later.
         wp_register_script('tw-shortcode-script', TWURL . '/assets/shortcode.js',['jquery'], null, []);
         wp_register_style('tw-shortcode', TWURL . '/assets/shortcode.css', [], null);
         wp_register_style('fontawesome-6', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css', [], '6.6.0');
 
+        // Register the shortcode
         add_shortcode($this->shortcode_tag, [$this, 'callback']);
         
     }
@@ -44,6 +54,7 @@ class TW_Shortcode
      */
     public function callback(){
 
+        // Enqueue scripts and styles only when the shortcode is used.
         wp_enqueue_script('jquery');
         wp_enqueue_script('tw-shortcode-script');
         wp_add_inline_script('tw-shortcode-script', 'const twjs = ' . json_encode( [
@@ -52,8 +63,10 @@ class TW_Shortcode
         wp_enqueue_style('tw-shortcode');
         wp_enqueue_style('fontawesome-6');
 
+        // get the cities
         $cities = $this->get_cities();
         
+        // Start HTML Output
         ob_start();
         ?>
         <div class="tw-main">
@@ -99,7 +112,7 @@ class TW_Shortcode
     }
 
     /**
-     * Get the list of Cities
+     * Get the list of Cities. Query using global variable $wpdb
      * 
      * @param string $s
      * @param string $output Any of ARRAY_A | ARRAY_N | OBJECT | OBJECT_K constants.
@@ -151,7 +164,7 @@ class TW_Shortcode
     }
 
     /**
-     * Save the Weatherdata to the DB
+     * Save the Weather data to the DB. This will help reduce the API calls. default interval for next API call is 1 hour. Please check the check_weatherdata_last_saved() function below
      * 
      * @param int $post_id
      * @param mixed $weatherdata
@@ -173,7 +186,7 @@ class TW_Shortcode
     }
 
     /**
-     * Callback function for the AJAX
+     * Callback function for the AJAX. This is the callback function for the search form
      * 
      * @return json results in json format
      */
@@ -204,18 +217,18 @@ class TW_Shortcode
     }
 
     /**
-     * Check when is the weatherdata last saved on DB.
+     * Check when is the weather data last saved on DB. This will check if the data should be updated or not. Default Interval is 1 Hour
      * 
      * @param string $date_last_retreived
-     * @param int $seconds_to_check 
+     * @param int $interval 
      * 
      * @return bool 
      */
-    public function check_weatherdata_last_saved( $date_last_retreived = '', $seconds_to_check = 3600 ){
+    public function check_weatherdata_last_saved( $date_last_retreived = '', $interval = 3600 ){
         if(empty($date_last_retreived)) return false;
         $checkdate = strtotime($date_last_retreived);
         $datenow = time();
-        if( (($datenow - $checkdate) / $seconds_to_check) >= 1 ) {
+        if( (($datenow - $checkdate) / $interval) >= 1 ) {
             return true;
         }else {
             return false;

@@ -2,6 +2,13 @@
 
 if(!defined('ABSPATH')) die('Access Denied');
 
+/**
+ * PHP Class for Admin/Backend. 
+ * Whats included: 
+ * - Create Custom post type "Cities"
+ * - Create Custom Taxonomy "Countries"
+ * - Add Metabox with Latitude and Longitude Custom Field
+ */
 class TWAdmin
 {
     // declare custom post type variables
@@ -115,6 +122,10 @@ class TWAdmin
 
     }
 
+    /**
+     * Initialize Custom Metabox
+     * 
+     */
     public function init_metabox() {
         add_action('add_meta_boxes', [$this, 'add_metabox']);
     }
@@ -165,6 +176,7 @@ class TWAdmin
      * 
      * @param int $post_id
      * 
+     * @return string
      */
     public function save_customfields( $post_id ){
         global $wpdb;
@@ -177,7 +189,6 @@ class TWAdmin
         // check autosave
         if( wp_is_post_autosave($post_id) ) return;
         
-
         // check for permissions
         if( $_POST['post_type'] == $this->posttype['name'] ) {
             if( !current_user_can('edit_page', $post_id) ) return 'cannot edit page';
@@ -185,13 +196,10 @@ class TWAdmin
             return 'cannot edit post';
         }
 
-
-        
         // Loop through each customfields
         foreach( $this->customfields as $cu ) {
             // sanitized values first
-            // $sanitized_value = sanitize_text_field($_POST[$cu['name']]);
-            $sanitized_value = $_POST[ $cu['name'] ];
+            $sanitized_value = sanitize_text_field($_POST[$cu['name']]);
             $a[] = $sanitized_value;
             
             // add or update customfield to database

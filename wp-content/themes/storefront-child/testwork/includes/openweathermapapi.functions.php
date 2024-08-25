@@ -2,11 +2,25 @@
 
 if(!defined('ABSPATH')) die('Access Denied');
 
+/**
+ * PHP Class for getting weather data from OpenWeatherMap API
+ */
 class OWM_API
 {
     private static $_apikey = 'eb481724ea1648946307d95610c88a1e';
     private static $_api_url = 'https://api.openweathermap.org/data/2.5/weather';
 
+    /**
+     * Get the Weather Data on OpenWeatherMap using API
+     * 
+     * @param string $lat
+     * @param string $lon
+     * @param bool $associative
+     * @param string $apikey
+     * @param string $api_url
+     * 
+     * @return array Returns the result from API query
+     */
     public static function get_api($lat = '', $lon = '', $associative = false, $apikey = '',$api_url = ''){
         if(empty($lat) && empty($lon)) return false;
         if(empty($apikey)) $apikey = self::$_apikey;
