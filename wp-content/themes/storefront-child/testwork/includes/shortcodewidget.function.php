@@ -13,6 +13,10 @@ class TW_Shortcode
     public function __construct()
     {
         add_action('init', [$this, 'init']);
+
+        // ajax function
+        add_action('wp_ajax_tw_search', [$this, 'tw_search_callback']);
+        add_action('wp_ajax_nopriv_tw_search', [$this, 'tw_search_callback']);
     }
 
     public function init(){
@@ -34,6 +38,9 @@ class TW_Shortcode
 
         wp_enqueue_script('jquery');
         wp_enqueue_script('tw-shortcode-script');
+        wp_add_inline_script('tw-shortcode-script', 'const twjs = ' . json_encode( [
+            'ajax_url' => admin_url('admin-ajax.php'),
+        ] ), 'before');
         wp_enqueue_style('tw-shortcode');
         wp_enqueue_style('fontawesome-6');
 
@@ -46,12 +53,13 @@ class TW_Shortcode
                 <form id="tw-citysearch" action="" method="POST" onsubmit="return false;">
                     <div class="cu-formrow">
                         <?php wp_nonce_field( 'tw_search', 'tw_wpnonce' ) ?>
-                        <input type="hidden" name="action" value="tw_search">
-                        <input type="text" name="s" id="tw-searchinput"> <button type="submit" id="tw-citysearch-submit">Search</button>
+                        <input type="hidden" id="tw_action" name="action" value="tw_search">
+                        <span class="cu-forminput"><input type="text" name="s" id="tw-searchinput"><button id="tw-inputclear" style="display: none;" title="Clear"><i class="fa-solid fa-xmark"></i></button></span> <button type="submit" id="tw-citysearch-submit"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
                     </div>
                 </form>
             </div>
             <div class="tw-section tw-citytablelist">
+                <?php do_action('tw_citytable_before') ?>
                 <table class="tw-table">
                     <thead>
                         <tr>
@@ -75,6 +83,7 @@ class TW_Shortcode
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+                <?php do_action('tw_citytable_after') ?>
             </div>
         </div>
         <?php 
@@ -85,10 +94,11 @@ class TW_Shortcode
      * Get the list of Cities
      * 
      * @param string $s
+     * @param string $output Any of ARRAY_A | ARRAY_N | OBJECT | OBJECT_K constants.
      * 
      * @return array Array of Cities
      */
-    public function get_cities($s = ''){
+    public function get_cities($s = '', $output = OBJECT){
         global $wpdb;
 
         $sql = "SELECT a.ID, a.post_title, a.post_name, a.post_type, b.meta_value '{$this->latitude_name}', c.meta_value '{$this->longitude_name}' FROM {$wpdb->posts} a
@@ -97,11 +107,11 @@ class TW_Shortcode
                 WHERE a.post_status = 'publish' AND a.post_type = '". TW_PT ."'";
 
         if(!empty($s)) {
-            $sql .= " a.post_title like '$s'";
+            $sql .= " AND a.post_title like '%{$s}%'";
         }
 
         $query = $wpdb->prepare($sql);
-        return $wpdb->get_results($query);
+        return $wpdb->get_results($query, $output);
     }
 
     /**
@@ -115,8 +125,6 @@ class TW_Shortcode
      */
     public function get_weather($post_id = 0, $lat = '', $lon = '') {
         if($post_id == 0 || empty($lat) || empty($lon) ) return false;
-
-        // return 'Test'; // testing
 
         if( !metadata_exists( 'post', $post_id, $this->weatherdata_metakey ) ) {
             $get_weather = OWM_API::get_api($lat, $lon, true);
@@ -147,6 +155,32 @@ class TW_Shortcode
 
         add_post_meta($post_id, $this->weatherdata_metakey, $weatherdata);
         add_post_meta($post_id, $this->retreived_date_metakey, date('Y-m-d H:i:s'));
+    }
+
+    public function tw_search_callback(){
+        if( !isset($_REQUEST['wpnonce']) || !wp_verify_nonce( $_REQUEST['wpnonce'], 'tw_search' )  ) {
+            return wp_send_json_error( ['error' => true, 'error_msg' => 'Invalid nonce'] );
+        }
+
+        $s = $_REQUEST['s'];
+        if( !isset($s) || empty($s) ) {
+            $city_result = $this->get_cities( '', ARRAY_A );
+        }else{
+            $city_result = $this->get_cities( sanitize_text_field($s), ARRAY_A );
+        }
+
+
+        for ($i=0; $i < count($city_result); $i++) {
+            $city = $city_result[$i];
+            $country = get_the_terms($city['ID'], TW_TAX);
+            $city_result[$i]['country'] = $country[0]->name;
+            $weather = $this->get_weather($city['ID'], $city['cu_latitude'], $city['cu_longitude']);
+            if(!empty($weather) || $weather !== false) {
+                $city_result[$i]['temp'] = $weather['main']['temp'] . TW_TEMP_UNIT;
+            }
+        }
+
+        return wp_send_json_success($city_result);
     }
 }
 

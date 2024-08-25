@@ -8,7 +8,7 @@ class TWAdmin
     private $posttype = [
         'singular' => 'City',
         'plural' => 'Cities',
-        'name' => TW_TAX
+        'name' => TW_PT
     ];
 
     // declare taxonomy variables

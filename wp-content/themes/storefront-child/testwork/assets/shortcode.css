@@ -20,3 +20,18 @@
     display: block;
     color: #fff;
 }
+
+.cu-forminput {
+    position: relative;
+}
+
+#tw-inputclear{
+    color: rgb(204, 42, 2);
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 0px 8px;
+    background: none;
+    z-index: 9;
+    outline: none;
+}
