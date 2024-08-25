@@ -2,6 +2,9 @@
 
 if(!defined('ABSPATH')) die('Access Denied');
 
+/**
+ * Shortcode to list the Cities in a table with search
+ */
 class TW_Shortcode
 {
     private $shortcode_tag = 'tw_cities';
@@ -19,6 +22,11 @@ class TW_Shortcode
         add_action('wp_ajax_nopriv_tw_search', [$this, 'tw_search_callback']);
     }
 
+    /**
+     * Initialize
+     * 
+     * @return [type]
+     */
     public function init(){
         wp_register_script('tw-shortcode-script', TWURL . '/assets/shortcode.js',['jquery'], null, []);
         wp_register_style('tw-shortcode', TWURL . '/assets/shortcode.css', [], null);
@@ -132,7 +140,7 @@ class TW_Shortcode
             return $get_weather;
         }else {
             $date_retreived = get_post_meta($post_id, $this->retreived_date_metakey, true);
-            if(empty($date_retreived)) {
+            if(empty($date_retreived) || $this->check_weatherdata_last_saved($date_retreived) !== false) {
                 $get_weather = OWM_API::get_api($lat, $lon, true);
                 $this->save_weatherdata($post_id, $get_weather);
                 return $get_weather;
@@ -143,7 +151,7 @@ class TW_Shortcode
     }
 
     /**
-     * Save Weatherdata
+     * Save the Weatherdata to the DB
      * 
      * @param int $post_id
      * @param mixed $weatherdata
@@ -153,10 +161,22 @@ class TW_Shortcode
             return false;
         }
 
-        add_post_meta($post_id, $this->weatherdata_metakey, $weatherdata);
-        add_post_meta($post_id, $this->retreived_date_metakey, date('Y-m-d H:i:s'));
+        $metadata = [$this->weatherdata_metakey => $weatherdata, $this->retreived_date_metakey => date('Y-m-d H:i:s')];
+
+        foreach($metadata as $metakey => $metavalue) {
+            if(!metadata_exists('post', $post_id, $metakey)) {
+                add_post_meta($post_id, $metakey, $metavalue);
+            } else {
+                update_post_meta($post_id, $metakey, $metavalue);
+            }
+        }
     }
 
+    /**
+     * Callback function for the AJAX
+     * 
+     * @return json results in json format
+     */
     public function tw_search_callback(){
         if( !isset($_REQUEST['wpnonce']) || !wp_verify_nonce( $_REQUEST['wpnonce'], 'tw_search' )  ) {
             return wp_send_json_error( ['error' => true, 'error_msg' => 'Invalid nonce'] );
@@ -181,6 +201,26 @@ class TW_Shortcode
         }
 
         return wp_send_json_success($city_result);
+    }
+
+    /**
+     * Check when is the weatherdata last saved on DB.
+     * 
+     * @param string $date_last_retreived
+     * @param int $seconds_to_check 
+     * 
+     * @return bool 
+     */
+    public function check_weatherdata_last_saved( $date_last_retreived = '', $seconds_to_check = 3600 ){
+        if(empty($date_last_retreived)) return false;
+        $checkdate = strtotime($date_last_retreived);
+        $datenow = time();
+        if( (($datenow - $checkdate) / $seconds_to_check) >= 1 ) {
+            return true;
+        }else {
+            return false;
+        }
+
     }
 }
 
