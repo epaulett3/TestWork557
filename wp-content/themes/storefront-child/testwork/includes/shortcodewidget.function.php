@@ -17,6 +17,8 @@ class TW_Shortcode
 
     public function init(){
         wp_register_script('tw-shortcode-script', TWURL . '/assets/shortcode.js',['jquery'], null, []);
+        wp_register_style('tw-shortcode', TWURL . '/assets/shortcode.css', [], null);
+        wp_register_style('fontawesome-6', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css', [], '6.6.0');
 
         add_shortcode($this->shortcode_tag, [$this, 'callback']);
         
@@ -32,13 +34,23 @@ class TW_Shortcode
 
         wp_enqueue_script('jquery');
         wp_enqueue_script('tw-shortcode-script');
+        wp_enqueue_style('tw-shortcode');
+        wp_enqueue_style('fontawesome-6');
 
         $cities = $this->get_cities();
         
         ob_start();
         ?>
         <div class="tw-main">
-            <div class="tw-section tw-search"></div>
+            <div class="tw-section tw-search">
+                <form id="tw-citysearch" action="" method="POST" onsubmit="return false;">
+                    <div class="cu-formrow">
+                        <?php wp_nonce_field( 'tw_search', 'tw_wpnonce' ) ?>
+                        <input type="hidden" name="action" value="tw_search">
+                        <input type="text" name="s" id="tw-searchinput"> <button type="submit" id="tw-citysearch-submit">Search</button>
+                    </div>
+                </form>
+            </div>
             <div class="tw-section tw-citytablelist">
                 <table class="tw-table">
                     <thead>
