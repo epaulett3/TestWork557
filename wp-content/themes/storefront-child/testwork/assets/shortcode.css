@@ -63,3 +63,9 @@
 button#tw-citysearch-submit {
     background: var(--color2);
 }
+
+@media screen and (max-width: 767px) {
+    .tw-section.tw-citytablelist {
+        overflow-x: scroll;
+    }
+}
