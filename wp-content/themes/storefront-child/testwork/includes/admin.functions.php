@@ -8,14 +8,14 @@ class TWAdmin
     private $posttype = [
         'singular' => 'City',
         'plural' => 'Cities',
-        'name' => 'city'
+        'name' => TW_TAX
     ];
 
     // declare taxonomy variables
     private $tax = [
         'singular' => 'Country',
         'plural' => 'Countries',
-        'name' => 'cu_countries'
+        'name' => TW_TAX
     ];
 
     // declare custom field variables
