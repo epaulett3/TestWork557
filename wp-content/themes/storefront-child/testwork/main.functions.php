@@ -2,7 +2,8 @@
 
 if(!defined('ABSPATH')) die('Access Denied');
 
-define( 'TWPATH', get_stylesheet_directory() . '/testwork' );
+define( 'TWPATH', __DIR__ );
+define( 'TWURL', get_stylesheet_directory_uri() . '/testwork' );
 define( 'TWTXTDOMAIN', 'testwork');
 define('TW_TAX', 'cu_countries');
 define( 'TW_PT', 'city');

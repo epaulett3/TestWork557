@@ -16,7 +16,10 @@ class TW_Shortcode
     }
 
     public function init(){
+        wp_register_script('tw-shortcode-script', TWURL . '/assets/shortcode.js',['jquery'], null, []);
+
         add_shortcode($this->shortcode_tag, [$this, 'callback']);
+        
     }
 
 
@@ -28,6 +31,7 @@ class TW_Shortcode
     public function callback(){
 
         wp_enqueue_script('jquery');
+        wp_enqueue_script('tw-shortcode-script');
 
         $cities = $this->get_cities();
         
@@ -118,8 +122,14 @@ class TW_Shortcode
         }
     }
 
+    /**
+     * Save Weatherdata
+     * 
+     * @param int $post_id
+     * @param mixed $weatherdata
+     */
     public function save_weatherdata( $post_id = 0, $weatherdata ){
-        if($post_id == 0 || $weatherdata === false) {
+        if($post_id == 0 || $weatherdata === false || empty( $weatherdata )) {
             return false;
         }
 
