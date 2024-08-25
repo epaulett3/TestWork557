@@ -42,8 +42,6 @@ class TWAdmin
         // save customfields function
         add_action( 'save_post', [$this, 'save_customfields'] );
         add_action( 'new_to_publish', [$this, 'save_customfields'] );
-
-        // add_action( 'wp_footer', [$this, 'testfunction']);
     }
     
     /**
@@ -205,24 +203,6 @@ class TWAdmin
             
         }
         
-    }
-
-    public function testfunction(){
-        $city = get_post(19);
-
-        $taxonomy = get_the_terms($city->ID, $this->tax['name']);
-
-        $get_weather = OWM_API::get_api($city->cu_latitude, $city->cu_longitude);
-
-        $city_info = [
-            'city_name' => $city->post_title,
-            'country' => $taxonomy[0]->name,
-            'latitude' => $city->cu_latitude,
-            'longitude' => $city->cu_longitude,
-        ];
-        ?>
-        <pre><?php var_dump($get_weather) ?></pre>
-        <?php 
     }
 
 }
