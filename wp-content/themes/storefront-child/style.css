@@ -60,3 +60,15 @@ header#masthead {
 
 
 /* CSS STYLES FOR HEADER SECTION - END */
+
+@media screen and (max-width: 767px) {
+    .cu-branding .site-branding {
+        float: none;
+        width: 100%;
+    }
+
+    .site-header-wrapper {
+        padding: 0 10px;
+    }
+
+}
